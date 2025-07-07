@@ -1,0 +1,263 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MCP Server Configuration",
+  "description": "Schema for MCP server configuration files",
+  "type": "object",
+  "required": ["name", "type", "meta", "about"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The name of the server"
+    },
+    "image": {
+      "type": "string",
+      "description": "Docker image for the server (required for type: server)"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["server", "poci"],
+      "description": "Type of server configuration"
+    },
+    "longLived": {
+      "type": "boolean",
+      "description": "Whether the server is long-lived"
+    },
+    "meta": {
+      "type": "object",
+      "required": ["category", "tags"],
+      "properties": {
+        "category": {
+          "type": "string",
+          "description": "Category of the server"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags associated with the server"
+        },
+        "highlighted": {
+          "type": "boolean",
+          "description": "Whether the server is highlighted"
+        }
+      },
+      "additionalProperties": false
+    },
+    "about": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Display title of the server"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the server"
+        },
+        "icon": {
+          "type": "string",
+          "description": "URL to the server icon"
+        }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["project"],
+      "properties": {
+        "project": {
+          "type": "string",
+          "description": "Source project URL"
+        },
+        "branch": {
+          "type": "string",
+          "description": "Git branch"
+        },
+        "directory": {
+          "type": "string",
+          "description": "Directory within the project"
+        },
+        "dockerfile": {
+          "type": "string",
+          "description": "Path to Dockerfile"
+        },
+        "upstream": {
+          "type": "string",
+          "description": "Upstream project URL"
+        }
+      },
+      "additionalProperties": false
+    },
+    "config": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string",
+          "description": "Description of the configuration"
+        },
+        "secrets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "env"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Name of the secret"
+              },
+              "env": {
+                "type": "string",
+                "description": "Environment variable name"
+              },
+              "example": {
+                "type": "string",
+                "description": "Example value"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "Secret configurations"
+        },
+        "env": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Environment variable name"
+              },
+              "example": {
+                "type": "string",
+                "description": "Example value"
+              },
+              "value": {
+                "type": "string",
+                "description": "Environment variable value"
+              }
+            },
+            "additionalProperties": false
+          },
+          "description": "Environment variable configurations"
+        },
+        "parameters": {
+          "type": "object",
+          "description": "Parameter schema (JSON Schema object)"
+        }
+      },
+      "additionalProperties": false
+    },
+    "run": {
+      "type": "object",
+      "properties": {
+        "command": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Command to run the server"
+        },
+        "env": {
+          "type": "object",
+          "description": "Environment variables for running the server"
+        },
+        "volumes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Volume mounts"
+        },
+        "disableNetwork": {
+          "type": "boolean",
+          "description": "Whether to disable network access"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "description", "parameters", "container"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of the tool"
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the tool"
+          },
+          "parameters": {
+            "type": "object",
+            "description": "Parameter schema for the tool (JSON Schema object)"
+          },
+          "container": {
+            "type": "object",
+            "required": ["image"],
+            "properties": {
+              "image": {
+                "type": "string",
+                "description": "Docker image for the tool"
+              },
+              "command": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Command to run in the container"
+              },
+              "volumes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Volume mounts for the container"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "description": "Tools available for poci type servers"
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "server"
+          }
+        }
+      },
+      "then": {
+        "required": ["image"],
+        "not": {
+          "required": ["tools"]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "poci"
+          }
+        }
+      },
+      "then": {
+        "required": ["tools"],
+        "not": {
+          "required": ["image"]
+        }
+      }
+    }
+  ]
+}
